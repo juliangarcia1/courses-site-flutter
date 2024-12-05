@@ -12,37 +12,73 @@ class QuizSummary extends StatelessWidget {
     required this.userAnswers,
   }) : super(key: key);
 
+  int _calculateScore() {
+    int correctAnswers = 0;
+    for (var i = 0; i < quiz.questions.length; i++) {
+      if (_isAnswerCorrect(quiz.questions[i], userAnswers[i])) {
+        correctAnswers++;
+      }
+    }
+    return correctAnswers;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: quiz.questions.length,
-      itemBuilder: (context, index) {
-        final question = quiz.questions[index];
-        final userAnswer = userAnswers[index];
-        final isCorrect = _isAnswerCorrect(question, userAnswer);
+    final score = _calculateScore();
+    final totalQuestions = quiz.questions.length;
+    final percentage = (score / totalQuestions * 100).round();
 
-        return Card(
-          margin: const EdgeInsets.all(8.0),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Question ${index + 1}: ${question.text}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16.0),
+          color: Colors.grey.shade100,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Score: $score/$totalQuestions ($percentage%)',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 8),
-                _buildAnswerWidget(question, userAnswer, isCorrect),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: quiz.questions.length,
+            itemBuilder: (context, index) {
+              final question = quiz.questions[index];
+              final userAnswer = userAnswers[index];
+              final isCorrect = _isAnswerCorrect(question, userAnswer);
+
+              return Card(
+                margin: const EdgeInsets.all(8.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Question ${index + 1}: ${question.text}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildAnswerWidget(question, userAnswer, isCorrect),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildAnswerWidget(QuestionModel question, dynamic userAnswer, bool isCorrect) {
+  Widget _buildAnswerWidget(QuestionModel currentQuestion, dynamic userAnswer, bool isCorrect) {
     if (userAnswer == null) {
       return const Text(
         'Not answered',
@@ -50,16 +86,16 @@ class QuizSummary extends StatelessWidget {
       );
     }
 
-    switch (question.type) {
+    switch (currentQuestion.type) {
       case 'multiple_choice':
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (var i = 0; i < question.options.length; i++)
+            for (var i = 0; i < currentQuestion.options.length; i++)
               Text(
-                question.options[i],
+                currentQuestion.options[i],
                 style: TextStyle(
-                  color: _getAnswerColor(question, userAnswer, i),
+                  color: _getAnswerColor(currentQuestion, userAnswer, i),
                 ),
               ),
             if (!isCorrect) ...[
@@ -71,8 +107,8 @@ class QuizSummary extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              ...question.correctAnswer.map<Widget>((index) => Text(
-                    question.options[index],
+              ...currentQuestion.correctAnswer.map<Widget>((index) => Text(
+                    currentQuestion.options[index],
                     style: const TextStyle(color: Colors.green),
                   )),
             ],
@@ -87,7 +123,6 @@ class QuizSummary extends StatelessWidget {
           ),
         );
       case 'fill_the_blank':
-      case 'fill_multiple_blanks':
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -98,9 +133,47 @@ class QuizSummary extends StatelessWidget {
               ),
             ),
             if (!isCorrect) Text(
-              'Correct answer: ${question.correctAnswer}',
+              'Correct answer: ${currentQuestion.correctAnswer}',
               style: const TextStyle(color: Colors.green),
             ),
+          ],
+        );
+      case 'fill_multiple_blanks':
+        final userAnswers = userAnswer as List;
+        final correctAnswers = currentQuestion.correctAnswer as List;
+        final parts = currentQuestion.text.split('____');
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              children: [
+                Text('Your answers: ', style: TextStyle(
+                  color: isCorrect ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.bold,
+                )),
+                ...List.generate(userAnswers.length, (i) => [
+                  if (i > 0) const Text(', '),
+                  Text(userAnswers[i].toString(),
+                    style: TextStyle(
+                      color: _isAnswerCorrectAtIndex(userAnswers[i].toString(), correctAnswers[i].toString()) 
+                        ? Colors.green 
+                        : Colors.red,
+                    ),
+                  ),
+                ]).expand((x) => x),
+              ],
+            ),
+            if (!isCorrect) ...[
+              const SizedBox(height: 8),
+              const Text('Correct answers:', style: TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              )),
+              Text(correctAnswers.join(', '),
+                style: const TextStyle(color: Colors.green),
+              ),
+            ],
           ],
         );
       default:
@@ -108,19 +181,23 @@ class QuizSummary extends StatelessWidget {
     }
   }
 
-  Color _getAnswerColor(QuestionModel question, dynamic userAnswer, int index) {
-    if (userAnswer == null || question.type != 'multiple_choice') {
+  Color _getAnswerColor(QuestionModel currentQuestion, dynamic userAnswer, int index) {
+    if (userAnswer == null || currentQuestion.type != 'multiple_choice') {
       return Colors.black;
     }
 
     final List<bool> answers = userAnswer as List<bool>;
-    final isCorrectOption = (question.correctAnswer as List).contains(index);
+    final isCorrectOption = (currentQuestion.correctAnswer as List).contains(index);
     final wasSelected = answers[index];
 
     if (isCorrectOption && wasSelected) return Colors.green;
     if (!isCorrectOption && wasSelected) return Colors.red;
-    if (isCorrectOption && !wasSelected) return Colors.red; // Highlight missed correct answers
+    if (isCorrectOption && !wasSelected) return Colors.red;
     return Colors.black;
+  }
+
+  bool _isAnswerCorrectAtIndex(String userAnswer, String correctAnswer) {
+    return userAnswer.trim().toLowerCase() == correctAnswer.trim().toLowerCase();
   }
 
   bool _isAnswerCorrect(QuestionModel question, dynamic userAnswer) {
@@ -150,9 +227,26 @@ class QuizSummary extends StatelessWidget {
       case 'yes_no':
         return userAnswer == question.correctAnswer;
       case 'fill_the_blank':
-      case 'fill_multiple_blanks':
         return userAnswer.toString().toLowerCase() == 
                question.correctAnswer.toString().toLowerCase();
+      case 'fill_multiple_blanks':
+        try {
+          final correctAnswers = question.correctAnswer as List;
+          final userAnswers = userAnswer as List;
+          if (correctAnswers.length != userAnswers.length) return false;
+          
+          for (var i = 0; i < correctAnswers.length; i++) {
+            if (!_isAnswerCorrectAtIndex(
+              userAnswers[i].toString(),
+              correctAnswers[i].toString()
+            )) {
+              return false;
+            }
+          }
+          return true;
+        } catch (e) {
+          return false;
+        }
       default:
         return false;
     }

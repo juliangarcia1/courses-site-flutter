@@ -23,10 +23,7 @@ class FillMultipleBlanksQuestion extends StatefulWidget {
 }
 
 class _FillMultipleBlanksQuestionState extends State<FillMultipleBlanksQuestion> {
-  final List<TextEditingController> _controllers = [
-    TextEditingController(),
-    TextEditingController(),
-  ];
+  late final List<TextEditingController> _controllers;
 
   void _notifyAnswers() {
     final answers = _controllers.map((c) => c.text).toList();
@@ -36,9 +33,12 @@ class _FillMultipleBlanksQuestionState extends State<FillMultipleBlanksQuestion>
   @override
   void initState() {
     super.initState();
-    for (var controller in _controllers) {
-      controller.addListener(_notifyAnswers);
-    }
+    // Initialize controllers based on number of blanks
+    final blankCount = widget.question.correctAnswer.length;
+    _controllers = List.generate(
+      blankCount,
+      (_) => TextEditingController()..addListener(_notifyAnswers),
+    );
   }
 
   @override
@@ -62,7 +62,7 @@ class _FillMultipleBlanksQuestionState extends State<FillMultipleBlanksQuestion>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.question.text,
+            'Complete the sentence:',
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
@@ -70,18 +70,20 @@ class _FillMultipleBlanksQuestionState extends State<FillMultipleBlanksQuestion>
             alignment: WrapAlignment.start,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Text(parts[0], style: const TextStyle(fontSize: 16)),
-              SizedBox(
-                width: 100,
-                child: TextField(
-                  controller: _controllers[0],
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              for (var i = 0; i < parts.length; i++) ...[
+                Text(parts[i], style: const TextStyle(fontSize: 16)),
+                if (i < _controllers.length)
+                  SizedBox(
+                    width: 100,
+                    child: TextField(
+                      controller: _controllers[i],
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              if (parts.length > 1) Text(parts[1], style: const TextStyle(fontSize: 16)),
+              ],
             ],
           ),
         ],
