@@ -34,6 +34,19 @@
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
+        },
+        {
+            "name": "coursessite(ios)",
+            "cwd": "coursessite",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "15B382F9-136F-439F-957A-F6336AA46244"
+            ]
         }
+
+
     ]
 }

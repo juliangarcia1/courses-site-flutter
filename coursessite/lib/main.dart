@@ -10,6 +10,7 @@ import 'features/articles/presentation/pages/login/login.dart';
 import 'features/authentication/presentation/reset_password.dart';
 import 'features/authentication/presentation/sign_up.dart';
 import 'src/courses_def.dart' as config;
+import 'features/quiz/presentation/pages/quiz.dart';
 
 void main(List<String> args) {
   runApp(const MainApp());
@@ -32,16 +33,16 @@ class _MainAppState extends State<MainApp> {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Scaffold(
+      home: const Scaffold(
         // appBar: AppB
         //   title: const Text("Courses Site"),
         // ),
-        body: const Landpage(),//_isLogged ? const Landpage() : SignIn(),
+        body: Quiz(),//_isLogged ? const Landpage() : SignIn(),
         // body: const Content(),
         // const Center(
         //   child: Text("Courses Site"),
         // ),
-        drawer:  const CustomDrawer(),
+        drawer:  CustomDrawer(),
       ),
       routes: {
         '/landpage': (context) => const Landpage(),
@@ -50,6 +51,7 @@ class _MainAppState extends State<MainApp> {
         '/reset-password': (context) => const ResetPassword(),
         '/course': (context) =>
             const Course(courseName: 'Python', steps: 'pythonBasicsSteps'),
+        '/quiz': (context) => const Quiz(),
         // for over config.pythonCourse
         for (var i = 0; i < config.pythonCourses.length; i++)
           '/${config.pythonCourses[i]['sluggedName']}': (context) => Course(

@@ -15,7 +15,7 @@ class Carrousel extends StatelessWidget {
             "images/tree2.jpeg",
             width: MediaQuery.of(context).size.width,
           ),
-          ButtonBar(
+          OverflowBar(
             alignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
@@ -37,7 +37,7 @@ class Carrousel extends StatelessWidget {
                   title: Text('Python Basico'),
                   subtitle: Text('Julian Garcia. | 8hrs'),
                 ),
-                ButtonBar(
+                OverflowBar(
                   children: [
                     ElevatedButton(
                       onPressed: () {
@@ -65,7 +65,7 @@ class Carrousel extends StatelessWidget {
                   title: Text('Python Intermedio'),
                   subtitle: Text('Julian Garcia. | 8.5hrs'),
                 ),
-                ButtonBar(
+                OverflowBar(
                   children: [
                     ElevatedButton(
                       onPressed: () {},

@@ -17,7 +17,7 @@ class _ContentState extends State<Content> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: const Text("Content")
+      body: Text("Content")
     );
   }
 }

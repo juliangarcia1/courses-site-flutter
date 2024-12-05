@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
 
 // Entities: objects that are going to be the
 // outcome of the domain
