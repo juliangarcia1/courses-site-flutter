@@ -45,43 +45,41 @@ class _CourseState extends State<Course> {
       ),
       body: Stepper(
         controlsBuilder: (BuildContext context, ControlsDetails details) {
-        return Row(
-          children: <Widget>[
-            TextButton(
-              onPressed: details.onStepCancel,
-              // child: Container(),
-              child: const Text('Back'),
-            ),
-            TextButton(
-              onPressed: details.onStepContinue,
-              // child: Container(),
-              child: const Text('Next'),
-            ),
-          ],
-        );
-      },
+          return Row(
+        children: <Widget>[
+          TextButton(
+            onPressed: _index == 0 ? null : details.onStepCancel,
+            child: const Text('Back'),
+          ),
+          TextButton(
+            onPressed: _index == 8 ? null : details.onStepContinue,
+            child: const Text('Next'),
+          ),
+        ],
+          );
+        },
         type: StepperType.horizontal,
         currentStep: _index,
         onStepCancel: () {
           if (_index > 0) {
-            setState(() {
-              _index -= 1;
-            });
+        setState(() {
+          _index -= 1;
+        });
           }
         },
         onStepContinue: () {
-          if (_index <= 8) {
-            setState(() {
-              _index += 1;
-            });
+          if (_index < 8) {
+        setState(() {
+          _index += 1;
+        });
           }
         },
         onStepTapped: (int index) {
           setState(() {
-            _index = index;
+        _index = index;
           });
         },
-        steps: _steps() ,
+        steps: _steps(),
       ),
     );
   }
