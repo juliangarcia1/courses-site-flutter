@@ -1,25 +1,24 @@
+
 import 'package:flutter/material.dart';
 import 'package:coursessite/core/services/cognito_service.dart';
-import 'package:provider/provider.dart';
-import 'package:coursessite/core/services/session_service.dart';
 
-class SignUp extends StatefulWidget {
-  const SignUp({super.key});
+class ConfirmResetPassword extends StatefulWidget {
+  const ConfirmResetPassword({super.key});
 
   @override
-  State<SignUp> createState() => _SignUpState();
+  State<ConfirmResetPassword> createState() => _ConfirmResetPasswordState();
 }
 
-class _SignUpState extends State<SignUp> {
+class _ConfirmResetPasswordState extends State<ConfirmResetPassword> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _codeController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _cognitoService = CognitoService();
   bool _isLoading = false;
   String? _errorMessage;
 
-  Future<void> _signUp(BuildContext context) async {
+  Future<void> _confirmReset(String email) async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -27,18 +26,16 @@ class _SignUpState extends State<SignUp> {
       });
 
       try {
-        final success = await _cognitoService.signUp(
-          _emailController.text.trim(),
+        final success = await _cognitoService.confirmForgotPassword(
+          email,
+          _codeController.text.trim(),
           _passwordController.text,
         );
 
         if (success && mounted) {
-          final sessionService = Provider.of<SessionService>(context, listen: false);
-          sessionService.login();
-          Navigator.pushNamed(
-            context,
-            '/verify-email',
-            arguments: _emailController.text.trim(),
+          Navigator.pushReplacementNamed(context, '/signin');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Password reset successful')),
           );
         }
       } catch (e) {
@@ -57,8 +54,12 @@ class _SignUpState extends State<SignUp> {
 
   @override
   Widget build(BuildContext context) {
+    final email = ModalRoute.of(context)!.settings.arguments as String;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up')),
+      appBar: AppBar(
+        title: const Text("Confirm Reset Password"),
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -67,28 +68,27 @@ class _SignUpState extends State<SignUp> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const Text(
+                  "Enter the verification code sent to your email and your new password.",
+                  style: TextStyle(fontSize: 17),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
                 TextFormField(
-                  controller: _emailController,
+                  controller: _codeController,
                   decoration: const InputDecoration(
-                    labelText: 'Email',
+                    labelText: 'Verification Code',
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter an email';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
+                  validator: (value) => value?.isEmpty ?? true 
+                      ? 'Please enter the verification code' 
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
                   decoration: const InputDecoration(
-                    labelText: 'Password',
+                    labelText: 'New Password',
                     border: OutlineInputBorder(),
                   ),
                   obscureText: true,
@@ -106,7 +106,7 @@ class _SignUpState extends State<SignUp> {
                 TextFormField(
                   controller: _confirmPasswordController,
                   decoration: const InputDecoration(
-                    labelText: 'Confirm Password',
+                    labelText: 'Confirm New Password',
                     border: OutlineInputBorder(),
                   ),
                   obscureText: true,
@@ -127,14 +127,14 @@ class _SignUpState extends State<SignUp> {
                   ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: _isLoading ? null : () => _signUp(context),
+                  onPressed: _isLoading ? null : () => _confirmReset(email),
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Sign Up'),
+                      : const Text('Reset Password'),
                 ),
               ],
             ),
@@ -146,7 +146,7 @@ class _SignUpState extends State<SignUp> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _codeController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();

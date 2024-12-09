@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "${workspaceFolder}/coursessite/linux"
+    "cmake.sourceDirectory": "${workspaceFolder}/coursessite/linux",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
